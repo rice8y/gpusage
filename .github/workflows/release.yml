@@ -9,7 +9,7 @@ on:
       - 'v*'
 
 env:
-  PROJECT_NAME: gpu-monitor
+  PROJECT_NAME: gpusage
 
 jobs:
   build:
