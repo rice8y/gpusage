@@ -76,3 +76,20 @@ target/release/gpusage
 >```bash
 >export PATH="$HOME/.local/bin:$PATH"
 >```
+
+## Usage
+
+```bash
+gpusage [OPTIONS] --end-time <YYYY-MM-DD-HH:MM:SS> --interval <SECONDS>
+```
+
+### Options
+
+- `-e`, `--end-time <YYYY-MM-DD-HH:MM:SS>` : End datetime for monitoring (local time)
+- `-i`, `--interval <SECONDS>` : Sampling interval in seconds
+- `-b`, `--backup-interval <SECONDS>` : Interval in seconds for writing backups [default: 300]
+- `-m`, `--backup-mode <MODE>` : Backup mode: 'new' for timestamped files, 'overwrite' to reuse a single file [default: new]
+- `-p`, `--prefix <PREFIX>` : Filename prefix for backups [default: gpu_usage_backup]
+- `-v`, `--verbose` : Enable verbose snapshot output
+- `-h`, `--help` : Print help
+- `-V`, `--version` : Print version
