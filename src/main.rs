@@ -51,8 +51,20 @@ fn get_gpu_usage_snapshot() -> Vec<LogEntry> {
     }).collect()
 }
 
-fn backup_usage_snapshot(total_usage: &HashMap<String, f64>, timestamp: u64) {
-    let filename = format!("gpu_usage_backup_{}.csv", timestamp);
+fn backup_usage_snapshot(
+    total_usage: &HashMap<String, f64>,
+    timestamp: u64,
+    prefix: &str,
+    overwrite: bool,
+) {
+    // Determine filename
+    let filename = if overwrite {
+        format!("{}.csv", prefix)
+    } else {
+        format!("{}_{}.csv", prefix, timestamp)
+    };
+
+    // Write (or overwrite) the file
     if let Ok(mut file) = File::create(&filename) {
         writeln!(file, "user,gib_hr").ok();
         for (user, &gib_hr) in total_usage {
@@ -86,6 +98,20 @@ fn main() {
             .required(false)
             .default_value("300")
             .help("Interval in seconds for writing backups"))
+        .arg(Arg::new("backup-mode")
+            .short('m')
+            .long("backup-mode")
+            .value_name("MODE")
+            .required(false)
+            .default_value("new")
+            .help("Backup mode: 'new' for timestamped files, 'overwrite' to reuse a single file"))
+        .arg(Arg::new("prefix")
+            .short('p')
+            .long("prefix")
+            .value_name("PREFIX")
+            .required(false)
+            .default_value("gpu_usage_backup")
+            .help("Filename prefix for backups"))
         .arg(Arg::new("verbose")
             .short('v')
             .long("verbose")
@@ -95,6 +121,9 @@ fn main() {
     let end_str = matches.get_one::<String>("end-time").unwrap();
     let interval_sec: u64 = matches.get_one::<String>("interval").unwrap().parse().expect("Invalid interval");
     let backup_interval: u64 = matches.get_one::<String>("backup-interval").unwrap().parse().expect("Invalid backup interval");
+    let mode = matches.get_one::<String>("backup-mode").unwrap().as_str();
+    let overwrite = mode.eq_ignore_ascii_case("overwrite");
+    let prefix = matches.get_one::<String>("prefix").unwrap();
     let verbose = matches.contains_id("verbose");
 
     let end_dt = NaiveDateTime::parse_from_str(end_str, "%Y-%m-%d-%H:%M:%S")
@@ -124,7 +153,7 @@ fn main() {
         }
 
         if current - last_backup >= backup_interval {
-            backup_usage_snapshot(&total_usage, current);
+            backup_usage_snapshot(&total_usage, current, prefix, overwrite);
             last_backup = current;
         }
 
