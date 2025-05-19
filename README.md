@@ -4,6 +4,8 @@
 [![Release](https://github.com/rice8y/gpusage/actions/workflows/release.yml/badge.svg)](https://github.com/rice8y/gpusage/actions/workflows/release.yml)
 [![GitHub release](https://img.shields.io/github/v/release/rice8y/gpusage?sort=semver)](https://github.com/rice8y/gpusage/releases)
 
+GPUsage is a tool to monitor GPU memory usage per user over time, with periodic backups.
+
 ## Installation
 
 Replace `vX.Y.Z` below with the version you’re installing (e.g. `v0.1.0`), or automate via CI.
@@ -93,3 +95,7 @@ gpusage [OPTIONS] --end-time <YYYY-MM-DD-HH:MM:SS> --interval <SECONDS>
 - `-v`, `--verbose` : Enable verbose snapshot output
 - `-h`, `--help` : Print help
 - `-V`, `--version` : Print version
+
+## License
+
+This CLI tool is distributed under the MIT License. See [LICENSE](LICENSE).
