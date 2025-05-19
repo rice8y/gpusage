@@ -1,6 +1,6 @@
 use std::{collections::HashMap, process::Command, thread, time::{Duration, SystemTime, UNIX_EPOCH}, fs::File, io::Write};
 use chrono::{NaiveDateTime, TimeZone, Local};
-use clap::{Arg, Command as ClapCommand};
+use clap::{Arg, Command as ClapCommand, ArgAction};
 
 #[derive(Debug)]
 struct LogEntry {
@@ -57,14 +57,12 @@ fn backup_usage_snapshot(
     prefix: &str,
     overwrite: bool,
 ) {
-    // Determine filename
     let filename = if overwrite {
         format!("{}.csv", prefix)
     } else {
         format!("{}_{}.csv", prefix, timestamp)
     };
 
-    // Write (or overwrite) the file
     if let Ok(mut file) = File::create(&filename) {
         writeln!(file, "user,gib_hr").ok();
         for (user, &gib_hr) in total_usage {
@@ -78,7 +76,16 @@ fn backup_usage_snapshot(
 
 fn main() {
     let matches = ClapCommand::new("gpu-monitor")
-        .about("Monitor GPU memory usage per user over time, with periodic backups")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .help_template(concat!(
+            "{about}\n\n",
+            "\x1b[4mAuthor:\x1b[0m\n{author}\n\n",
+            "\x1b[4mLicense:\x1b[0m\nMIT\n\n",
+            "\x1b[4mUsage:\x1b[0m\n{usage}\n\n",
+            "{all-args}\n\n"
+        ))
         .arg(Arg::new("end-time")
             .short('e')
             .long("end-time")
@@ -115,6 +122,7 @@ fn main() {
         .arg(Arg::new("verbose")
             .short('v')
             .long("verbose")
+            .action(ArgAction::SetTrue)
             .help("Enable verbose snapshot output"))
         .get_matches();
 
@@ -124,7 +132,7 @@ fn main() {
     let mode = matches.get_one::<String>("backup-mode").unwrap().as_str();
     let overwrite = mode.eq_ignore_ascii_case("overwrite");
     let prefix = matches.get_one::<String>("prefix").unwrap();
-    let verbose = matches.contains_id("verbose");
+    let verbose = matches.get_flag("verbose");
 
     let end_dt = NaiveDateTime::parse_from_str(end_str, "%Y-%m-%d-%H:%M:%S")
         .expect("Invalid datetime format");
