@@ -9,7 +9,7 @@ on:
       - 'v*'
 
 env:
-  PROJECT_NAME: gpusage
+  PROJECT_NAME: gpu-monitor
 
 jobs:
   build:
@@ -40,11 +40,28 @@ jobs:
           args: --release --target ${{ matrix.job.target }}
 
       - name: Rename artifacts
+        # Use bash shell for consistent mv on Linux/macOS, and fallback to PowerShell on Windows
+        if: runner.os != 'Windows'
+        shell: bash
         run: |
           mv target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }} \
              ${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}
+      
+      - name: Rename artifacts (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Rename-Item \
+            -Path "target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }}" \
+            -NewName "${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}"
 
       - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            ${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
