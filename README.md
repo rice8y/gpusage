@@ -11,8 +11,8 @@ Replace `vX.Y.Z` below with the version you’re installing (e.g. `v0.1.0`), or 
 ### Download from Releases
 
 Prebuilt binaries are on the [Releases](https://github.com/rice8y/gpusage/releases) page. Choose the one for your OS/Arch and put it in your `PATH`.
-
-#### Linux
+<!--  -->
+<!-- #### Linux -->
 
 ```bash
 # Example for Linux
@@ -29,7 +29,7 @@ sudo mv gpusage /usr/local/bin/gpusage
 mv gpusage ~/.local/bin/gpusage
 export PATH="$HOME/.local/bin:$PATH"
 ```
-
+<!-- 
 #### macOS (Homebrew alternative)
 
 ```bash
@@ -53,7 +53,7 @@ Invoke-WebRequest $url -OutFile gpusage.exe
 
 # Add to PATH or move:
 Move-Item gpusage.exe C:\Windows\System32\gpusage.exe
-```
+``` -->
 
 ### Build from Source
 
