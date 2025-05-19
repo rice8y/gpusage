@@ -1,5 +1,5 @@
 [package]
-name = "gpu-monitor"
+name = "gpusage"
 version = "0.1.0"
 authors = ["Eito Yoneyama <yoneyama@ai.cs.ehime-u.ac.jp>"]
 edition = "2024"
