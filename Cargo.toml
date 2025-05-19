@@ -3,7 +3,6 @@ name = "gpusage"
 version = "0.1.0"
 authors = ["Eito Yoneyama <yoneyama@ai.cs.ehime-u.ac.jp>"]
 edition = "2024"
-
 license-file = "LICENSE"
 description = "Monitor GPU memory usage per user over time, with periodic backups"
 repository = "https://github.com/rice8y/gpusage"
