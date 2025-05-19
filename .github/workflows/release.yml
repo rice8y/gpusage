@@ -1,4 +1,4 @@
-name: Release
+name: release
 
 permissions:
   contents: write
@@ -8,54 +8,46 @@ on:
     tags:
       - 'v*'
 
+env:
+  PROJECT_NAME: gpusage
+
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.job.os }}
     strategy:
-      fail-fast: false
       matrix:
-        os: [ubuntu-latest]
-        target:
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
-          - armv7-unknown-linux-gnueabihf
-          - aarch64-unknown-linux-gnu
-          - aarch64-unknown-linux-musl
-        use-cross: [false, true, true, true, true]
-        extension: ["", "", "", "", ""]
+        job:
+          - { os: ubuntu-latest  , target: x86_64-unknown-linux-gnu       , use-cross: false , extension: "" }
+          - { os: ubuntu-latest  , target: aarch64-unknown-linux-gnu     , use-cross: true  , extension: "" }
+          - { os: macos-latest   , target: x86_64-apple-darwin           , use-cross: false , extension: "" }
+          - { os: macos-latest   , target: aarch64-apple-darwin          , use-cross: false , extension: "" }
+          - { os: windows-latest , target: x86_64-pc-windows-msvc          , use-cross: false , extension: ".exe" }
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Extract crate name
-        run: |
-          echo "CRATE_NAME=$(sed -n 's/^name *= *\"\(.*\)\"/\1/p' Cargo.toml | head -n1)" >> $GITHUB_ENV
-
-      - name: Install toolchain & targets
-        uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          target: ${{ matrix.target }}
+          target: ${{ matrix.job.target }}
 
-      - name: Build binaries
+      - name: Build
         uses: actions-rs/cargo@v1
         with:
+          use-cross: ${{ matrix.job.use-cross }}
           command: build
-          args: --release --target ${{ matrix.target }}
-          use-cross: ${{ matrix['use-cross'] }}
+          args: --release --target ${{ matrix.job.target }}
 
       - name: Rename artifacts
         run: |
-          mkdir -p dist
-          mv target/${{ matrix.target }}/release/${{ env.CRATE_NAME }} \
-             dist/${{ env.CRATE_NAME }}-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}
+          mv target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }} \
+             ${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}
 
-      - name: Publish Release Assets
+      - name: Release
         uses: softprops/action-gh-release@v1
-        with:
-          files: dist/${{ env.CRATE_NAME }}-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          files: |
+            ${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}
