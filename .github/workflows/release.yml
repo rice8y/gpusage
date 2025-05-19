@@ -1,33 +1,61 @@
 name: Release
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v*'
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+        use-cross: [false, true, true, true, true]
+        extension: ["", "", "", "", ""]
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Set up Rust
-        uses: actions/setup-rust@stable
-        with:
-          rust-version: stable
-
-      - name: Build release binary
-        run: cargo build --release
-
-      - name: Archive release binary
+      - name: Extract crate name
         run: |
-          mkdir dist
-          cp target/release/gpu-monitor dist/
-          cd dist && tar czvf gpu-monitor.tar.gz gpu-monitor
+          echo "CRATE_NAME=$(sed -n 's/^name *= *\"\(.*\)\"/\1/p' Cargo.toml | head -n1)" >> $GITHUB_ENV
 
-      - name: Create GitHub Release
+      - name: Install toolchain & targets
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          target: ${{ matrix.target }}
+
+      - name: Build binaries
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --release --target ${{ matrix.target }}
+          use-cross: ${{ matrix['use-cross'] }}
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p dist
+          mv target/${{ matrix.target }}/release/${{ env.CRATE_NAME }} \
+             dist/${{ env.CRATE_NAME }}-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}
+
+      - name: Publish Release Assets
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/gpu-monitor.tar.gz
+          files: dist/${{ env.CRATE_NAME }}-${{ github.ref_name }}-${{ matrix.target }}${{ matrix.extension }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
