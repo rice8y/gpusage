@@ -50,9 +50,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Rename-Item \
-            -Path "target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }}" \
-            -NewName "${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}"
+          Rename-Item -Path "target/${{ matrix.job.target }}/release/${{ env.PROJECT_NAME }}${{ matrix.job.extension }}" -NewName "${{ env.PROJECT_NAME }}-${{ github.ref_name }}-${{ matrix.job.target }}${{ matrix.job.extension }}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
